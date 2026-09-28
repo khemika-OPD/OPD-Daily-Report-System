@@ -3,76 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPD Daily Report</title>
+    <title>OPD Multi-Unit Report</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; padding: 20px; }
-        .card { margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .header-title { color: #2c3e50; border-bottom: 2px solid #18bc9c; margin-bottom: 20px; }
+        body { background-color: #f0f2f5; font-family: 'Sarabun', sans-serif; padding-bottom: 50px; }
+        .section-card { border-radius: 15px; border-left: 5px solid #0d6efd; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .sticky-date { position: sticky; top: 0; z-index: 1000; background: #fff; padding: 10px; border-bottom: 2px solid #ddd; }
     </style>
 </head>
 <body>
 
+<div class="sticky-date container-fluid">
+    <div class="container">
+        <label class="form-label fw-bold">📅 เลือกวันที่รายงาน (ตรวจสอบให้ถูกต้องก่อนบันทึก):</label>
+        <input type="date" id="report_date" name="report_date" class="form-control form-control-lg border-primary">
+    </div>
+</div>
+
 <div class="container">
-    <h2 class="header-title">🏥 บันทึกรายงานประจำวัน OPD</h2>
-    
     <form id="opdForm">
-        <!-- 1. สถิติการคัดกรอง -->
-        <div class="card p-3">
-            <h5>1. สถิติการคัดกรอง</h5>
+        <!-- ส่วนที่ 1: คัดกรอง -->
+        <div class="card section-card p-3">
+            <h5 class="text-primary">1. สถิติการคัดกรอง</h5>
             <div class="row g-2">
-                <div class="col-6">ซักประวัติทั่วไป: <input type="number" name="scr_gen" class="form-control" value="0"></div>
-                <div class="col-6">จุดรถนั่ง/นอน: <input type="number" name="scr_wheel" class="form-control" value="0"></div>
-                <div class="col-6">คลินิกพิเศษ: <input type="number" name="scr_spec" class="form-control" value="0"></div>
-                <div class="col-6">จุด 99: <input type="number" name="scr_99" class="form-control" value="0"></div>
+                <div class="col-6">ทั่วไป: <input type="number" name="scr_gen" class="form-control" placeholder="0"></div>
+                <div class="col-6">รถนั่ง/นอน: <input type="number" name="scr_wheel" class="form-control" placeholder="0"></div>
+                <div class="col-6">คลินิกพิเศษ: <input type="number" name="scr_spec" class="form-control" placeholder="0"></div>
+                <div class="col-6">จุด 99: <input type="number" name="scr_99" class="form-control" placeholder="0"></div>
             </div>
         </div>
 
-        <!-- 2. การจัดการเร่งด่วน -->
-        <div class="card p-3">
-            <h5>2. การจัดการเร่งด่วน</h5>
+        <!-- ส่วนที่ 2: เร่งด่วน -->
+        <div class="card section-card p-3" style="border-left-color: #dc3545;">
+            <h5 class="text-danger">2. การจัดการเร่งด่วน</h5>
             <div class="row g-2">
-                <div class="col-6">Fast track OPD: <input type="number" name="fast_track" class="form-control" value="0"></div>
-                <div class="col-6">ส่ง ER: <input type="number" name="send_er" class="form-control" value="0"></div>
+                <div class="col-6">Fast Track: <input type="number" name="fast_track" class="form-control" placeholder="0"></div>
+                <div class="col-6">ส่ง ER: <input type="number" name="send_er" class="form-control" placeholder="0"></div>
             </div>
         </div>
 
-        <!-- 5. แยกตามสาขา -->
-        <div class="card p-3">
-            <h5>5. ผู้ป่วยแยกตามสาขา</h5>
+        <!-- ส่วนที่ 5: แยกสาขา -->
+        <div class="card section-card p-3" style="border-left-color: #198754;">
+            <h5 class="text-success">5. แยกตามสาขา</h5>
             <div class="row g-2">
-                <div class="col-4">Med: <input type="number" name="med" class="form-control" value="0"></div>
-                <div class="col-4">Ortho: <input type="number" name="ortho" class="form-control" value="0"></div>
-                <div class="col-4">Ped: <input type="number" name="ped" class="form-control" value="0"></div>
-                <div class="col-4">นรีเวช: <input type="number" name="obgyn" class="form-control" value="0"></div>
-                <div class="col-4">ศัลยกรรม: <input type="number" name="sur" class="form-control" value="0"></div>
+                <div class="col-4">Med: <input type="number" name="med" class="form-control"></div>
+                <div class="col-4">Ortho: <input type="number" name="ortho" class="form-control"></div>
+                <div class="col-4">Ped: <input type="number" name="ped" class="form-control"></div>
+                <div class="col-4">นรีเวช: <input type="number" name="obgyn" class="form-control"></div>
+                <div class="col-4">ศัลยกรรม: <input type="number" name="sur" class="form-control"></div>
+                <div class="col-4">เวชฟื้นฟู: <input type="number" name="rehab" class="form-control"></div>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-success w-100 p-3 mb-2">💾 บันทึกข้อมูลลง Google Sheets</button>
-        <button type="button" onclick="copyToLine()" class="btn btn-primary w-100 p-3">📋 สรุปรายงานสำหรับ LINE</button>
+        <!-- ส่วนที่ 6: หัตถการ -->
+        <div class="card section-card p-3" style="border-left-color: #ffc107;">
+            <h5 class="text-warning">6. งานหัตถการ</h5>
+            <div class="row g-2">
+                <div class="col-4">ทำแผล: <input type="number" name="wound" class="form-control"></div>
+                <div class="col-4">ฉีดยา: <input type="number" name="inj" class="form-control"></div>
+                <div class="col-4">EKG: <input type="number" name="ekg" class="form-control"></div>
+            </div>
+        </div>
+
+        <!-- ปุ่มควบคุม -->
+        <div class="mt-4">
+            <button type="button" onclick="submitData()" class="btn btn-primary w-100 p-3 mb-2 fw-bold">💾 บันทึกข้อมูลส่วนที่กรอก</button>
+            <button type="button" onclick="copyToLine()" class="btn btn-outline-success w-100 p-3">📋 สรุปรายงานรวมส่ง LINE</button>
+        </div>
     </form>
 </div>
 
 <script>
-    // ส่วนของการส่งข้อมูลไป Google Sheets
-    const scriptURL = 'YOUR_GOOGLE_SCRIPT_URL_HERE'; // ต้องเอา URL จาก Google Script มาใส่
-    const form = document.getElementById('opdForm');
+    // ตั้งค่าวันที่ปัจจุบัน
+    document.getElementById('report_date').valueAsDate = new Date();
 
-    form.addEventListener('submit', e => {
-        e.preventDefault();
-        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-        .then(response => alert("บันทึกข้อมูลเรียบร้อยแล้ว!"))
-        .catch(error => console.error('Error!', error.message));
-    });
+    const scriptURL = 'ใส่_URL_ของ_GOOGLE_APPS_SCRIPT_ตรงนี้';
+
+    function submitData() {
+        const form = document.getElementById('opdForm');
+        const formData = new FormData(form);
+        // เพิ่มวันที่เข้าไปใน FormData ด้วย
+        formData.append('report_date', document.getElementById('report_date').value);
+
+        // แสดงสถานะกำลังบันทึก
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerText = "กำลังบันทึก... กรุณารอสักครู่";
+
+        fetch(scriptURL, { method: 'POST', body: formData })
+        .then(response => {
+            alert("บันทึกข้อมูลเรียบร้อย! ข้อมูลส่วนนี้จะถูกไปรวมกับส่วนอื่นๆ ของวันที่เลือกไว้");
+            btn.disabled = false;
+            btn.innerText = "💾 บันทึกข้อมูลส่วนที่กรอก";
+        })
+        .catch(error => {
+            alert("เกิดข้อผิดพลาด!");
+            btn.disabled = false;
+        });
+    }
 
     function copyToLine() {
-        const d = new FormData(form);
-        let text = `📌 รายงาน OPD วันนี้\n- คัดกรองรวม: ${Number(d.get('scr_gen')) + Number(d.get('scr_wheel'))}\n- Admit: ${d.get('fast_track')}\n- Med: ${d.get('med')}`;
+        const d = new FormData(document.getElementById('opdForm'));
+        const rDate = document.getElementById('report_date').value;
+        let text = `🏥 รายงาน OPD วันที่ ${rDate}\n`;
+        text += `-------------------\n`;
+        text += `คัดกรองทั่วไป: ${d.get('scr_gen') || 0}\n`;
+        text += `Med: ${d.get('med') || 0}\n`;
+        text += `Ortho: ${d.get('ortho') || 0}\n`;
+        // เพิ่มบรรทัดอื่นๆ ตามต้องการ
+        
         navigator.clipboard.writeText(text);
-        alert("ก๊อปปี้ข้อความแล้ว วางใน LINE ได้เลย");
+        alert("ก๊อปปี้รายงานสรุปแล้ว!");
     }
 </script>
-
 </body>
 </html>
