@@ -1,0 +1,1012 @@
+<!-- ... existing code ... -->
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-slate-200 gap-4 no-print text-sm font-medium overflow-x-auto">
+      <button onclick="switchTab('summary-sheet')" id="tab-btn-summary-sheet" class="pb-3 border-b-2 border-sky-600 text-sky-600 flex items-center gap-2 font-semibold whitespace-nowrap">
+        <i data-lucide="calculator" class="w-4 h-4"></i>
+        <span>สรุปยอดตัวชี้วัด & สถิติเวร (Daily Sheet)</span>
+      </button>
+      <button onclick="switchTab('log')" id="tab-btn-log" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+        <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+        <span>สมุดบันทึกรายเคส (Case Log)</span>
+      </button>
+      <button onclick="switchTab('analytics')" id="tab-btn-analytics" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+        <span>กราฟสถิติภาพรวม</span>
+      </button>
+      <button onclick="switchTab('handover')" id="tab-btn-handover" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap">
+        <i data-lucide="message-square" class="w-4 h-4"></i>
+        <span>บันทึกส่งเวรพยาบาล</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: Exact Form from the Image (Summary Sheet) -->
+    <section id="section-summary-sheet" class="space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <!-- Header Banner with quick tools -->
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
+                <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+              </span>
+              <h2 class="text-base sm:text-lg font-bold">บันทึกรายงานสถิติประจำวัน แผนกผู้ป่วยนอก (OPD)</h2>
+            </div>
+            <p class="text-xs text-emerald-100 mt-1">
+              วันที่: <span id="sheet-date-label" class="font-bold"></span> | 
+              เวร: <span id="sheet-shift-label" class="font-bold">เช้า</span>
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 no-print">
+            <button onclick="autoCalculateFromLog()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white text-emerald-800 hover:bg-emerald-50 rounded-lg text-xs font-bold shadow-sm transition-all">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>ดึงยอดจากรายชื่อเคส</span>
+            </button>
+            <button onclick="copyLineReport()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-800/80 hover:bg-emerald-900 text-white rounded-lg text-xs font-semibold border border-emerald-400/40 shadow-sm transition-all">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>คัดลอกส่ง LINE</span>
+            </button>
+            <button onclick="saveDailySheet()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-sm transition-all">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i>
+              <span>บันทึกยอด</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-50/50">
+          
+          <!-- Column 1: งานคัดกรอง / หัตถการ / การส่งต่อ (ตามรายการในภาพ) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="stethoscope" class="w-4 h-4 text-emerald-600"></i>
+                <span>งานคัดกรอง หัตถการ และการจัดการเคส</span>
+              </h3>
+              <span class="text-xs text-slate-400">หน่วย: ราย</span>
+            </div>
+
+            <div class="space-y-2.5 text-xs text-slate-700">
+              <!-- Item 1 -->
+              <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2 rounded-lg border border-slate-200/60 transition-colors">
+                <span class="font-medium text-slate-800">1. Screen รถนั่ง/รถนอน</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_screen_wheelchair', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_screen_wheelchair" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_screen_wheelchair', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2 rounded-lg border border-slate-200/60 transition-colors">
+                <span class="font-medium text-slate-800">2. Screen คลินิกพิเศษ</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_screen_special', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_screen_special" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_screen_special', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 3 -->
+              <div class="flex items-center justify-between bg-rose-50/50 hover:bg-rose-50 p-2 rounded-lg border border-rose-200/60 transition-colors">
+                <span class="font-semibold text-rose-800">3. ส่ง ER</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_send_er', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_send_er" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-rose-700 bg-white border border-rose-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_send_er', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 4 -->
+              <div class="flex items-center justify-between bg-amber-50/50 hover:bg-amber-50 p-2 rounded-lg border border-amber-200/60 transition-colors">
+                <span class="font-semibold text-amber-800">4. แทรกตรวจคิวเร่งด่วน</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_urgent_insert', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_urgent_insert" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-amber-800 bg-white border border-amber-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_urgent_insert', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 5 -->
+              <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2 rounded-lg border border-slate-200/60 transition-colors">
+                <span class="font-medium text-slate-800">5. หัตถการ (ห้องฉีดยา+PV+US)</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_proc_injection_pv', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_proc_injection_pv" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_proc_injection_pv', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 6 -->
+              <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2 rounded-lg border border-slate-200/60 transition-colors">
+                <span class="font-medium text-slate-800">6. หัตถการห้องทำแผล</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_proc_wound', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_proc_wound" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_proc_wound', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 7 -->
+              <div class="flex items-center justify-between bg-purple-50/50 hover:bg-purple-50 p-2 rounded-lg border border-purple-200/60 transition-colors">
+                <span class="font-semibold text-purple-900">7. Admit</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_admit', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_admit" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-purple-800 bg-white border border-purple-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_admit', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 8 -->
+              <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2 rounded-lg border border-slate-200/60 transition-colors">
+                <span class="font-medium text-slate-800">8. นัด CT</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_app_ct', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_app_ct" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_app_ct', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 9 -->
+              <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2 rounded-lg border border-slate-200/60 transition-colors">
+                <span class="font-medium text-slate-800">9. Pre op เคส OR</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_pre_op_or', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_pre_op_or" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_pre_op_or', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 10 -->
+              <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2 rounded-lg border border-slate-200/60 transition-colors">
+                <span class="font-medium text-slate-800">10. นัด OR/EGD/US/MRI</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_app_special_inv', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_app_special_inv" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_app_special_inv', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 11 -->
+              <div class="flex items-center justify-between bg-blue-50/50 hover:bg-blue-50 p-2 rounded-lg border border-blue-200/60 transition-colors">
+                <span class="font-semibold text-blue-900">11. Refer + นัดสปร</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_refer_spr', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_refer_spr" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-blue-800 bg-white border border-blue-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_refer_spr', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+
+              <!-- Item 12 -->
+              <div class="bg-slate-50 hover:bg-slate-100/70 p-2.5 rounded-lg border border-slate-200/60 space-y-1.5 transition-colors">
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-slate-800">12. อื่นๆ (ระบุ เช่น เทเลเม็ด/ RRT/ Csg/ เยี่ยมเคส)</span>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="stepCounter('metric_other_count', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                    <input type="number" min="0" id="metric_other_count" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                    <button type="button" onclick="stepCounter('metric_other_count', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold no-print">+</button>
+                    <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                  </div>
+                </div>
+                <input type="text" id="metric_other_notes" placeholder="ระบุรายละเอียด เช่น เทเลเม็ด 2 ราย, RRT 1 ราย, เยี่ยมเคส 1 ราย" class="w-full text-[11px] bg-white border border-slate-200 rounded px-2 py-1 text-slate-700">
+              </div>
+
+              <!-- Item 13 -->
+              <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2 rounded-lg border border-slate-200/60 transition-colors">
+                <span class="font-medium text-slate-800">13. งานเปล</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="stepCounter('metric_porter', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                  <input type="number" min="0" id="metric_porter" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                  <button type="button" onclick="stepCounter('metric_porter', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold no-print">+</button>
+                  <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: จำนวนผู้ป่วยพบแพทย์แยกตามสาขา (ตามภาพเป๊ะ) -->
+          <div class="space-y-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="user-check" class="w-4 h-4 text-sky-600"></i>
+                    <span>** จำนวนผู้ป่วยพบแพทย์แยกตามสาขา **</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-500">สรุปยอดผู้รับบริการตรวจรักษาตามแผนก</p>
+                </div>
+                <div class="text-right">
+                  <span class="text-[11px] text-slate-400 block">รวมพบแพทย์</span>
+                  <span id="summary-total-doctors" class="text-base font-bold text-sky-700">0 ราย</span>
+                </div>
+              </div>
+
+              <div class="space-y-2.5 text-xs text-slate-700">
+                <!-- OPD ทั่วไป -->
+                <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2.5 rounded-lg border border-slate-200/60 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+                    <span class="font-semibold text-slate-800">OPD ทั่วไป</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="stepCounter('clinic_opd_gp', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                    <input type="number" min="0" id="clinic_opd_gp" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                    <button type="button" onclick="stepCounter('clinic_opd_gp', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold no-print">+</button>
+                    <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                  </div>
+                </div>
+
+                <!-- Ortho -->
+                <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2.5 rounded-lg border border-slate-200/60 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                    <span class="font-semibold text-slate-800">Ortho (กระดูกและข้อ)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="stepCounter('clinic_ortho', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                    <input type="number" min="0" id="clinic_ortho" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                    <button type="button" onclick="stepCounter('clinic_ortho', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold no-print">+</button>
+                    <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                  </div>
+                </div>
+
+                <!-- Ped -->
+                <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2.5 rounded-lg border border-slate-200/60 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span class="font-semibold text-slate-800">Ped (กุมารเวชกรรม)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="stepCounter('clinic_ped', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                    <input type="number" min="0" id="clinic_ped" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                    <button type="button" onclick="stepCounter('clinic_ped', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold no-print">+</button>
+                    <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                  </div>
+                </div>
+
+                <!-- Med -->
+                <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2.5 rounded-lg border border-slate-200/60 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                    <span class="font-semibold text-slate-800">Med (อายุรกรรม)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="stepCounter('clinic_med', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                    <input type="number" min="0" id="clinic_med" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                    <button type="button" onclick="stepCounter('clinic_med', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold no-print">+</button>
+                    <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                  </div>
+                </div>
+
+                <!-- นรีเวช -->
+                <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2.5 rounded-lg border border-slate-200/60 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
+                    <span class="font-semibold text-slate-800">นรีเวช (OB-GYN)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="stepCounter('clinic_gyn', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                    <input type="number" min="0" id="clinic_gyn" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                    <button type="button" onclick="stepCounter('clinic_gyn', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold no-print">+</button>
+                    <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                  </div>
+                </div>
+
+                <!-- ศัลยกรรม -->
+                <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2.5 rounded-lg border border-slate-200/60 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                    <span class="font-semibold text-slate-800">ศัลยกรรม (Surg)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="stepCounter('clinic_surg', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                    <input type="number" min="0" id="clinic_surg" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                    <button type="button" onclick="stepCounter('clinic_surg', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold no-print">+</button>
+                    <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                  </div>
+                </div>
+
+                <!-- เวชฟื้นฟู -->
+                <div class="flex items-center justify-between bg-slate-50 hover:bg-slate-100/70 p-2.5 rounded-lg border border-slate-200/60 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+                    <span class="font-semibold text-slate-800">เวชฟื้นฟู (Rehab)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="stepCounter('clinic_rehab', -1)" class="w-7 h-7 flex items-center justify-center rounded bg-slate-200 hover:bg-slate-300 font-bold text-slate-700 no-print">-</button>
+                    <input type="number" min="0" id="clinic_rehab" onchange="updateSummaryTotals()" value="0" class="w-16 text-center font-bold text-slate-900 bg-white border border-slate-300 rounded p-1">
+                    <button type="button" onclick="stepCounter('clinic_rehab', 1)" class="w-7 h-7 flex items-center justify-center rounded bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold no-print">+</button>
+                    <span class="text-slate-400 text-[11px] w-6 text-right">ราย</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Text Preview for LINE copy -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <i data-lucide="message-circle" class="w-3.5 h-3.5 text-emerald-500"></i>
+                  ตัวอย่างข้อความสรุปส่ง LINE
+                </span>
+                <span class="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-medium">พร้อมคัดลอก</span>
+              </div>
+              <textarea id="line-preview-text" readonly rows="8" class="w-full text-[11px] font-mono bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-600 focus:outline-none"></textarea>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <section id="section-log" class="space-y-4 hidden">
+<!-- ... existing code ... -->
+          <!-- Clinic Filter -->
+          <select id="filter-clinic" onchange="filterPatients()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-700 focus:ring-sky-500 focus:border-sky-500">
+            <option value="ALL">ทุกคลินิก / แผนก</option>
+            <option value="OPD ทั่วไป">OPD ทั่วไป</option>
+            <option value="Ortho">Ortho (กระดูกและข้อ)</option>
+            <option value="Ped">Ped (กุมารเวชกรรม)</option>
+            <option value="Med">Med (อายุรกรรม)</option>
+            <option value="นรีเวช">นรีเวช</option>
+            <option value="ศัลยกรรม">ศัลยกรรม</option>
+            <option value="เวชฟื้นฟู">เวชฟื้นฟู</option>
+          </select>
+<!-- ... existing code ... -->
+        <!-- Row 2: Insurance & Clinic & Time -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">สิทธิการรักษา *</label>
+            <select id="form-insurance" required class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-sky-500 focus:border-sky-500">
+              <option value="บัตรทอง (UC)">บัตรทอง (UC 30 บาท)</option>
+              <option value="ประกันสังคม (SSS)">ประกันสังคม (SSS)</option>
+              <option value="สวัสดิการข้าราชการ (CSMBS)">สวัสดิการข้าราชการ (CSMBS)</option>
+              <option value="ชำระเงินเอง (Cash)">ชำระเงินเอง / สด (Cash)</option>
+              <option value="พ.ร.บ.ผู้ประสบภัย">พ.ร.บ.ผู้ประสบภัยจากรถ</option>
+              <option value="ประกันชีวิต/บริษัท">ประกันชีวิตเอกชน</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">สาขาที่พบแพทย์ *</label>
+            <select id="form-clinic" required class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-sky-500 focus:border-sky-500">
+              <option value="OPD ทั่วไป">OPD ทั่วไป</option>
+              <option value="Ortho">Ortho (กระดูกและข้อ)</option>
+              <option value="Ped">Ped (กุมารเวชกรรม)</option>
+              <option value="Med">Med (อายุรกรรม)</option>
+              <option value="นรีเวช">นรีเวช</option>
+              <option value="ศัลยกรรม">ศัลยกรรม</option>
+              <option value="เวชฟื้นฟู">เวชฟื้นฟู</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">เวลาที่เข้ารับบริการ</label>
+            <input type="time" id="form-time" required class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-sky-500 focus:border-sky-500">
+          </div>
+        </div>
+
+        <!-- OPD Specific Category Checkboxes matching the image -->
+        <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-200">
+          <label class="block text-xs font-bold text-emerald-900 mb-2 flex items-center gap-1.5">
+            <i data-lucide="check-square" class="w-4 h-4 text-emerald-700"></i>
+            <span>กิจกรรม / หัตถการที่เกี่ยวข้องกับเคสนี้ (ตามหัวข้อเก็บข้อมูล OPD)</span>
+          </label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-slate-700">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="chk-wheelchair" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Screen รถนั่ง/รถนอน</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="chk-special" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Screen คลินิกพิเศษ</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="chk-urgent-insert" class="rounded text-amber-600 focus:ring-amber-500">
+              <span class="text-amber-900 font-medium">แทรกตรวจคิวเร่งด่วน</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="chk-proc-inj" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>ห้องฉีดยา+PV+US</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="chk-proc-wound" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>ห้องทำแผล</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="chk-ct" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>นัด CT</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="chk-preop" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Pre op เคส OR</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="chk-special-inv" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>นัด OR/EGD/US/MRI</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="chk-porter" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>งานเปล</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Row 3: Triage Level selection with color hints -->
+<!-- ... existing code ... -->
+        <!-- Row 7: Disposition & Doctor -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">ผลลัพธ์การตรวจ (Disposition) *</label>
+            <select id="form-disposition" required class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-sky-500 focus:border-sky-500">
+              <option value="รอตรวจ">กำลังรอตรวจ / ทำหัตถการ</option>
+              <option value="กลับบ้าน">จำหน่ายกลับบ้าน / สั่งรับยา</option>
+              <option value="Admit">Admit (รับไว้รักษาใน รพ.)</option>
+              <option value="ส่ง ER">ส่ง ER (ส่งต่อห้องฉุกเฉิน)</option>
+              <option value="Refer+นัดสปร">Refer + นัดสปร</option>
+              <option value="นัดตรวจซ้ำ">นัดติดตามอาการ (Follow Up)</option>
+              <option value="อื่นๆ">อื่นๆ (เทเลเม็ด/RRT/เยี่ยมเคส)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">แพทย์ผู้ตรวจ / พยาบาลผู้บันทึก</label>
+            <input type="text" id="form-doctor" placeholder="เช่น พญ.สิรินดา / พย.พรทิพย์" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-sky-500 focus:border-sky-500">
+          </div>
+        </div>
+<!-- ... existing code ... -->
+  <script>
+    const STORAGE_KEY_PATIENTS = 'opd_daily_patients_v2';
+    const STORAGE_KEY_HANDOVER = 'opd_daily_handover_v2';
+    const STORAGE_KEY_SHEET = 'opd_daily_sheet_v2';
+
+    let currentShift = 'เช้า';
+    let currentDate = new Date().toISOString().split('T')[0];
+    let patients = [];
+    let charts = {};
+
+    // Definition of metrics matching the user's provided sheet
+    const defaultMetrics = {
+      metric_screen_wheelchair: 0,
+      metric_screen_special: 0,
+      metric_send_er: 0,
+      metric_urgent_insert: 0,
+      metric_proc_injection_pv: 0,
+      metric_proc_wound: 0,
+      metric_admit: 0,
+      metric_app_ct: 0,
+      metric_pre_op_or: 0,
+      metric_app_special_inv: 0,
+      metric_refer_spr: 0,
+      metric_other_count: 0,
+      metric_other_notes: '',
+      metric_porter: 0,
+
+      // Doctor visit clinics
+      clinic_opd_gp: 0,
+      clinic_ortho: 0,
+      clinic_ped: 0,
+      clinic_med: 0,
+      clinic_gyn: 0,
+      clinic_surg: 0,
+      clinic_rehab: 0
+    };
+
+    // Initial mock data updated with the new clinics
+    const initialMockPatients = [
+      {
+        id: 'p-1',
+        date: new Date().toISOString().split('T')[0],
+        time: '08:15',
+        shift: 'เช้า',
+        hn: '67-00101',
+        fullname: 'นายสมหมาย พรประเสริฐ',
+        gender: 'ชาย',
+        age: 58,
+        insurance: 'บัตรทอง (UC)',
+        clinic: 'Med',
+        triage: '3-Urgent',
+        cc: 'เวียนศีรษะ บ้านหมุน คลื่นไส้ 1 วัน',
+        bp: '158/92',
+        pr: 84,
+        temp: 36.6,
+        spo2: 98,
+        diagnosis: 'Benign paroxysmal positional vertigo (BPPV)',
+        icd10: 'H81.1',
+        disposition: 'กลับบ้าน',
+        doctor: 'นพ.ปิยะพัฒน์',
+        notes: 'ให้ Dimenhydrinate 50mg stat',
+        tags: { wheelchair: true, proc_inj: true }
+      },
+      {
+        id: 'p-2',
+        date: new Date().toISOString().split('T')[0],
+        time: '08:42',
+        shift: 'เช้า',
+        hn: '67-00102',
+        fullname: 'นางกานดา สุขสมบูรณ์',
+        gender: 'หญิง',
+        age: 64,
+        insurance: 'สวัสดิการข้าราชการ (CSMBS)',
+        clinic: 'Med',
+        triage: '1-Resuscitation',
+        cc: 'แน่นหน้าอกร้าวไปกรามซ้าย หายใจเหนื่อยหอบ',
+        bp: '88/50',
+        pr: 110,
+        temp: 36.8,
+        spo2: 91,
+        diagnosis: 'Acute Coronary Syndrome',
+        icd10: 'I21.9',
+        disposition: 'ส่ง ER',
+        doctor: 'พญ.ชลธิชา',
+        notes: 'ส่งต่อ ER ทันที, On O2 cannula, EKG stat',
+        tags: { wheelchair: true, urgent_insert: true, porter: true }
+      },
+      {
+        id: 'p-3',
+        date: new Date().toISOString().split('T')[0],
+        time: '09:10',
+        shift: 'เช้า',
+        hn: '67-00103',
+        fullname: 'ด.ช.ธนกร ชื่นใจ',
+        gender: 'ชาย',
+        age: 5,
+        insurance: 'บัตรทอง (UC)',
+        clinic: 'Ped',
+        triage: '3-Urgent',
+        cc: 'ไข้สูง ไอหอบ 2 วัน',
+        bp: '95/60',
+        pr: 120,
+        temp: 39.1,
+        spo2: 97,
+        diagnosis: 'Acute Bronchitis',
+        icd10: 'J20.9',
+        disposition: 'กลับบ้าน',
+        doctor: 'นพ.เกียรติศักดิ์',
+        notes: 'พ่นยา Ventolin 1 dose',
+        tags: {}
+      },
+      {
+        id: 'p-4',
+        date: new Date().toISOString().split('T')[0],
+        time: '09:40',
+        shift: 'เช้า',
+        hn: '67-00104',
+        fullname: 'นายเอกชัย รัตนวงศ์',
+        gender: 'ชาย',
+        age: 32,
+        insurance: 'ประกันสังคม (SSS)',
+        clinic: 'ศัลยกรรม',
+        triage: '4-Semi-Urgent',
+        cc: 'มีดบาดนิ้วชี้มือขวา แผลลึก 1.5 ซม. เลือดซึม',
+        bp: '122/78',
+        pr: 76,
+        temp: 36.6,
+        spo2: 99,
+        diagnosis: 'Open wound of finger',
+        icd10: 'S61.0',
+        disposition: 'กลับบ้าน',
+        doctor: 'นพ.อภิชาติ',
+        notes: 'เย็บแผล 3 เข็ม ห้องทำแผล',
+        tags: { proc_wound: true }
+      },
+      {
+        id: 'p-5',
+        date: new Date().toISOString().split('T')[0],
+        time: '10:15',
+        shift: 'เช้า',
+        hn: '67-00105',
+        fullname: 'นางประภา เจริญพร',
+        gender: 'หญิง',
+        age: 72,
+        insurance: 'บัตรทอง (UC)',
+        clinic: 'Ortho',
+        triage: '2-Emergency',
+        cc: 'ล้มก้นกระแทก ปวดสะโพกขวามาก ขยับไม่ได้',
+        bp: '140/85',
+        pr: 88,
+        temp: 36.8,
+        spo2: 98,
+        diagnosis: 'Fracture neck of right femur',
+        icd10: 'S72.0',
+        disposition: 'Admit',
+        doctor: 'นพ.ชาญวิทย์',
+        notes: 'Skin traction, Admit ตึกศัลย์กระดูก',
+        tags: { wheelchair: true, porter: true }
+      }
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set current date in picker
+      const datePicker = document.getElementById('report-date-picker');
+      datePicker.value = currentDate;
+      datePicker.addEventListener('change', (e) => {
+        currentDate = e.target.value;
+        loadDailySheet();
+        updateUI();
+      });
+
+      // Load saved patients or mock
+      loadPatients();
+
+      // Load summary sheet for current shift & date
+      loadDailySheet();
+
+      // Load handover note
+      loadHandoverNote();
+
+      // Setup icons and initial render
+      updateUI();
+      lucide.createIcons();
+    });
+
+    function loadPatients() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY_PATIENTS);
+        if (stored) {
+          patients = JSON.parse(stored);
+        } else {
+          patients = [...initialMockPatients];
+          savePatientsToStorage();
+        }
+      } catch (e) {
+        console.error('Failed to load patients', e);
+        patients = [...initialMockPatients];
+      }
+    }
+
+    function savePatientsToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY_PATIENTS, JSON.stringify(patients));
+      } catch (e) {
+        console.error('Failed to save patients', e);
+      }
+    }
+
+    function setShift(shift) {
+      currentShift = shift;
+      ['morning', 'afternoon', 'night'].forEach(s => {
+        const btn = document.getElementById(`shift-btn-${s}`);
+        const label = s === 'morning' ? 'เช้า' : s === 'afternoon' ? 'บ่าย' : 'ดึก';
+        if (label === shift) {
+          btn.className = 'px-3 py-1.5 rounded-md font-medium transition-colors bg-white text-slate-800 shadow-sm';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-md font-medium transition-colors text-slate-600 hover:text-slate-900';
+        }
+      });
+      loadDailySheet();
+      loadHandoverNote();
+      updateUI();
+    }
+
+    function switchTab(tab) {
+      const sections = {
+        'summary-sheet': document.getElementById('section-summary-sheet'),
+        'log': document.getElementById('section-log'),
+        'analytics': document.getElementById('section-analytics'),
+        'handover': document.getElementById('section-handover')
+      };
+
+      const buttons = {
+        'summary-sheet': document.getElementById('tab-btn-summary-sheet'),
+        'log': document.getElementById('tab-btn-log'),
+        'analytics': document.getElementById('tab-btn-analytics'),
+        'handover': document.getElementById('tab-btn-handover')
+      };
+
+      Object.keys(sections).forEach(key => {
+        if (key === tab) {
+          sections[key].classList.remove('hidden');
+          buttons[key].className = 'pb-3 border-b-2 border-sky-600 text-sky-600 flex items-center gap-2 font-semibold whitespace-nowrap';
+        } else {
+          sections[key].classList.add('hidden');
+          buttons[key].className = 'pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2 whitespace-nowrap';
+        }
+      });
+
+      if (tab === 'analytics') {
+        renderCharts();
+      }
+      lucide.createIcons();
+    }
+
+    function stepCounter(id, delta) {
+      const input = document.getElementById(id);
+      if (!input) return;
+      let val = parseInt(input.value) || 0;
+      val = Math.max(0, val + delta);
+      input.value = val;
+      updateSummaryTotals();
+    }
+
+    function updateSummaryTotals() {
+      // Calculate total clinic doctor visits
+      const clinicFields = [
+        'clinic_opd_gp', 'clinic_ortho', 'clinic_ped', 'clinic_med',
+        'clinic_gyn', 'clinic_surg', 'clinic_rehab'
+      ];
+      let totalDoc = 0;
+      clinicFields.forEach(f => {
+        totalDoc += (parseInt(document.getElementById(f).value) || 0);
+      });
+      document.getElementById('summary-total-doctors').textContent = `${totalDoc} ราย`;
+
+      // Update preview text for LINE
+      generateLinePreviewText();
+    }
+
+    function autoCalculateFromLog() {
+      const shiftPatients = patients.filter(p => p.date === currentDate && (p.shift === currentShift || !p.shift));
+      
+      // Reset counters
+      const counts = { ...defaultMetrics };
+
+      shiftPatients.forEach(p => {
+        // Clinic breakdown
+        if (p.clinic === 'OPD ทั่วไป') counts.clinic_opd_gp++;
+        else if (p.clinic === 'Ortho') counts.clinic_ortho++;
+        else if (p.clinic === 'Ped') counts.clinic_ped++;
+        else if (p.clinic === 'Med') counts.clinic_med++;
+        else if (p.clinic === 'นรีเวช') counts.clinic_gyn++;
+        else if (p.clinic === 'ศัลยกรรม') counts.clinic_surg++;
+        else if (p.clinic === 'เวชฟื้นฟู') counts.clinic_rehab++;
+
+        // Dispositions
+        if (p.disposition === 'Admit') counts.metric_admit++;
+        if (p.disposition === 'ส่ง ER') counts.metric_send_er++;
+        if (p.disposition === 'Refer+นัดสปร' || p.disposition === 'Refer') counts.metric_refer_spr++;
+
+        // Checkbox tags
+        if (p.tags) {
+          if (p.tags.wheelchair) counts.metric_screen_wheelchair++;
+          if (p.tags.special) counts.metric_screen_special++;
+          if (p.tags.urgent_insert) counts.metric_urgent_insert++;
+          if (p.tags.proc_inj) counts.metric_proc_injection_pv++;
+          if (p.tags.proc_wound) counts.metric_proc_wound++;
+          if (p.tags.ct) counts.metric_app_ct++;
+          if (p.tags.preop) counts.metric_pre_op_or++;
+          if (p.tags.special_inv) counts.metric_app_special_inv++;
+          if (p.tags.porter) counts.metric_porter++;
+        }
+      });
+
+      // Populate input fields
+      Object.keys(counts).forEach(k => {
+        const el = document.getElementById(k);
+        if (el) el.value = counts[k];
+      });
+
+      updateSummaryTotals();
+      saveDailySheet();
+      showToast(`ดึงและคำนวณข้อมูลจากรายเคส (${shiftPatients.length} ราย) เรียบร้อย`, 'success');
+    }
+
+    function getSheetStorageKey() {
+      return `${STORAGE_KEY_SHEET}_${currentDate}_${currentShift}`;
+    }
+
+    function saveDailySheet() {
+      const data = {};
+      Object.keys(defaultMetrics).forEach(k => {
+        const el = document.getElementById(k);
+        if (el) {
+          data[k] = el.type === 'number' ? (parseInt(el.value) || 0) : el.value;
+        }
+      });
+
+      try {
+        localStorage.setItem(getSheetStorageKey(), JSON.stringify(data));
+        showToast('บันทึกข้อมูลสรุปสถิติประจำเวรแล้ว', 'success');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function loadDailySheet() {
+      document.getElementById('sheet-date-label').textContent = currentDate;
+      document.getElementById('sheet-shift-label').textContent = currentShift;
+
+      let data = { ...defaultMetrics };
+      try {
+        const stored = localStorage.getItem(getSheetStorageKey());
+        if (stored) {
+          data = { ...data, ...JSON.parse(stored) };
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      Object.keys(defaultMetrics).forEach(k => {
+        const el = document.getElementById(k);
+        if (el) el.value = data[k] !== undefined ? data[k] : defaultMetrics[k];
+      });
+
+      updateSummaryTotals();
+    }
+
+    function generateLinePreviewText() {
+      const getVal = id => document.getElementById(id) ? document.getElementById(id).value : 0;
+      const otherNotes = document.getElementById('metric_other_notes')?.value.trim();
+      const otherCount = getVal('metric_other_count');
+      const otherStr = otherCount > 0 
+        ? `${otherCount} ราย ${otherNotes ? '(' + otherNotes + ')' : ''}` 
+        : (otherNotes ? `${otherNotes}` : `0 ราย`);
+
+      const text = `📊 รายงานสถิติประจำวัน แผนก OPD
+🗓 วันที่: ${currentDate} (เวร${currentShift})
+━━━━━━━━━━━━━━━━━━
+• Screen รถนั่ง/รถนอน: ${getVal('metric_screen_wheelchair')} ราย
+• Screen คลินิกพิเศษ: ${getVal('metric_screen_special')} ราย
+• ส่ง ER: ${getVal('metric_send_er')} ราย
+• แทรกตรวจคิวเร่งด่วน: ${getVal('metric_urgent_insert')} ราย
+• หัตถการ(ห้องฉีดยา+PV+US): ${getVal('metric_proc_injection_pv')} ราย
+• หัตถการห้องทำแผล: ${getVal('metric_proc_wound')} ราย
+• Admit: ${getVal('metric_admit')} ราย
+• นัด CT: ${getVal('metric_app_ct')} ราย
+• Pre op เคส OR: ${getVal('metric_pre_op_or')} ราย
+• นัด OR/EGD/US/MRI: ${getVal('metric_app_special_inv')} ราย
+• Refer+นัดสปร: ${getVal('metric_refer_spr')} ราย
+• อื่นๆ: ${otherStr}
+• งานเปล: ${getVal('metric_porter')} ราย
+━━━━━━━━━━━━━━━━━━
+** จำนวนผู้ป่วยพบแพทย์แยกตามสาขา **
+• OPD ทั่วไป: ${getVal('clinic_opd_gp')} ราย
+• Ortho: ${getVal('clinic_ortho')} ราย
+• Ped: ${getVal('clinic_ped')} ราย
+• Med: ${getVal('clinic_med')} ราย
+• นรีเวช: ${getVal('clinic_gyn')} ราย
+• ศัลยกรรม: ${getVal('clinic_surg')} ราย
+• เวชฟื้นฟู: ${getVal('clinic_rehab')} ราย
+รวมตรวจพบแพทย์: ${document.getElementById('summary-total-doctors').textContent}`;
+
+      const previewBox = document.getElementById('line-preview-text');
+      if (previewBox) previewBox.value = text;
+      return text;
+    }
+
+    function copyLineReport() {
+      const text = generateLinePreviewText();
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('คัดลอกข้อความสรุปส่ง LINE แล้ว!', 'success');
+      } catch (err) {
+        showToast('ไม่สามารถคัดลอกได้ โปรดลองอีกครั้ง', 'error');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function openNewPatientModal() {
+      document.getElementById('modal-title').textContent = 'บันทึกข้อมูลผู้ป่วยใหม่ (OPD Visit)';
+      document.getElementById('patient-form').reset();
+      document.getElementById('form-patient-id').value = '';
+
+      // Uncheck custom tags
+      ['chk-wheelchair', 'chk-special', 'chk-urgent-insert', 'chk-proc-inj', 'chk-proc-wound', 'chk-ct', 'chk-preop', 'chk-special-inv', 'chk-porter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = false;
+      });
+      
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('form-time').value = `${hours}:${mins}`;
+
+      document.querySelector('input[name="triage"][value="3-Urgent"]').checked = true;
+      document.getElementById('patient-modal').classList.remove('hidden');
+    }
+
+    function editPatient(id) {
+      const patient = patients.find(p => p.id === id);
+      if (!patient) return;
+
+      document.getElementById('modal-title').textContent = 'แก้ไขข้อมูลผู้ป่วย: ' + patient.hn;
+      document.getElementById('form-patient-id').value = patient.id;
+      document.getElementById('form-hn').value = patient.hn;
+      document.getElementById('form-fullname').value = patient.fullname;
+      document.getElementById('form-gender').value = patient.gender;
+      document.getElementById('form-age').value = patient.age;
+      document.getElementById('form-insurance').value = patient.insurance;
+      document.getElementById('form-clinic').value = patient.clinic;
+      document.getElementById('form-time').value = patient.time;
+      document.getElementById('form-cc').value = patient.cc;
+      document.getElementById('form-bp').value = patient.bp || '';
+      document.getElementById('form-pr').value = patient.pr || '';
+      document.getElementById('form-temp').value = patient.temp || '';
+      document.getElementById('form-spo2').value = patient.spo2 || '';
+      document.getElementById('form-diagnosis').value = patient.diagnosis || '';
+      document.getElementById('form-icd10').value = patient.icd10 || '';
+      document.getElementById('form-disposition').value = patient.disposition;
+      document.getElementById('form-doctor').value = patient.doctor || '';
+      document.getElementById('form-notes').value = patient.notes || '';
+
+      const tags = patient.tags || {};
+      document.getElementById('chk-wheelchair').checked = !!tags.wheelchair;
+      document.getElementById('chk-special').checked = !!tags.special;
+      document.getElementById('chk-urgent-insert').checked = !!tags.urgent_insert;
+      document.getElementById('chk-proc-inj').checked = !!tags.proc_inj;
+      document.getElementById('chk-proc-wound').checked = !!tags.proc_wound;
+      document.getElementById('chk-ct').checked = !!tags.ct;
+      document.getElementById('chk-preop').checked = !!tags.preop;
+      document.getElementById('chk-special-inv').checked = !!tags.special_inv;
+      document.getElementById('chk-porter').checked = !!tags.porter;
+
+      const triageRadio = document.querySelector(`input[name="triage"][value="${patient.triage}"]`);
+      if (triageRadio) triageRadio.checked = true;
+
+      document.getElementById('patient-modal').classList.remove('hidden');
+    }
+
+    function handlePatientSubmit(event) {
+      event.preventDefault();
+      const id = document.getElementById('form-patient-id').value;
+      const triageVal = document.querySelector('input[name="triage"]:checked').value;
+
+      const patientData = {
+        hn: document.getElementById('form-hn').value.trim(),
+        fullname: document.getElementById('form-fullname').value.trim(),
+        gender: document.getElementById('form-gender').value,
+        age: parseInt(document.getElementById('form-age').value) || 0,
+        insurance: document.getElementById('form-insurance').value,
+        clinic: document.getElementById('form-clinic').value,
+        time: document.getElementById('form-time').value,
+        triage: triageVal,
+        cc: document.getElementById('form-cc').value.trim(),
+        bp: document.getElementById('form-bp').value.trim(),
+        pr: document.getElementById('form-pr').value ? parseInt(document.getElementById('form-pr').value) : null,
+        temp: document.getElementById('form-temp').value ? parseFloat(document.getElementById('form-temp').value) : null,
+        spo2: document.getElementById('form-spo2').value ? parseInt(document.getElementById('form-spo2').value) : null,
+        diagnosis: document.getElementById('form-diagnosis').value.trim(),
+        icd10: document.getElementById('form-icd10').value.trim().toUpperCase(),
+        disposition: document.getElementById('form-disposition').value,
+        doctor: document.getElementById('form-doctor').value.trim(),
+        notes: document.getElementById('form-notes').value.trim(),
+        tags: {
+          wheelchair: document.getElementById('chk-wheelchair').checked,
+          special: document.getElementById('chk-special').checked,
+          urgent_insert: document.getElementById('chk-urgent-insert').checked,
+          proc_inj: document.getElementById('chk-proc-inj').checked,
+          proc_wound: document.getElementById('chk-proc-wound').checked,
+          ct: document.getElementById('chk-ct').checked,
+          preop: document.getElementById('chk-preop').checked,
+          special_inv: document.getElementById('chk-special-inv').checked,
+          porter: document.getElementById('chk-porter').checked,
+        },
+        shift: currentShift,
+        date: currentDate
+      };
+
+      if (id) {
+        const index = patients.findIndex(p => p.id === id);
+        if (index !== -1) {
+          patients[index] = { ...patients[index], ...patientData };
+          showToast('แก้ไขข้อมูลเคสเรียบร้อยแล้ว', 'success');
+        }
+      } else {
+        const newPatient = {
+          id: 'p-' + Date.now(),
+          ...patientData
+        };
+        patients.unshift(newPatient);
+        showToast('ลงทะเบียนเคสใหม่สำเร็จ', 'success');
+      }
+
+      savePatientsToStorage();
+      closePatientModal();
+      updateUI();
+    }
+<!-- ... existing code ... -->
